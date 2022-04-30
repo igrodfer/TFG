@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch
 
 class AutoEncoder(nn.Module):
     def __init__(self, activation=nn.ReLU(),
@@ -35,3 +36,12 @@ class AutoEncoder(nn.Module):
         x = self.fc4(x)
 
         return x
+    
+    def save_model(self,PATH):
+        torch.save(self.state_dict(),PATH)
+    
+    def load_autoencoder(PATH):
+        model = AutoEncoder()
+        model.load_state_dict(torch.load(PATH))
+        model.eval()
+        return model
