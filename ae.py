@@ -6,8 +6,8 @@ class AutoEncoder(nn.Module):
                  input_size=3*8*8, hidden_sizes=[32*3,8,32*3]):
         super(AutoEncoder, self).__init__()
         self.input_size = input_size
-
-        # Here we initialize our activation and set up our two linear layers
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.to(device)        
         self.activation = activation
         self.fc1 = nn.Linear(input_size, hidden_sizes[0])
         self.fc2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
@@ -22,7 +22,7 @@ class AutoEncoder(nn.Module):
         return x
     
     def encode(self,x):
-        x = x.view(-1, 3*8*8)
+        x = x.view(-1, self.input_size)
         x = self.fc1(x)
         x = self.activation(x)
         x = self.fc2(x)
