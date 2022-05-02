@@ -34,6 +34,8 @@ class AutoEncoder(nn.Module):
         x = self.fc3(x)        
         x = self.activation(x)
         x = self.fc4(x)
+        sig = nn.Sigmoid()
+        x = sig(x)
 
         return x
     
