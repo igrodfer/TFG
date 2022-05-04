@@ -42,8 +42,8 @@ class AutoEncoder(nn.Module):
     def save_model(self,PATH):
         torch.save(self.state_dict(),PATH)
     
-    def load_autoencoder(PATH):
-        model = AutoEncoder()
+    def load_autoencoder(PATH,compression_out):
+        model = AutoEncoder(hidden_sizes=[32*3,compression_out,32*3])
         model.load_state_dict(torch.load(PATH))
         model.eval()
         return model
