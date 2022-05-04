@@ -7,14 +7,15 @@ import torch
 
 
 class Compressor_Decompressor:
-    def __init__(self,model_path:str,chunk_size=8) -> None:
+    def __init__(self,model_path:str,chunk_size=8,compression_out=8) -> None:
         self.tile_size = chunk_size
+        self.compression_out=compression_out
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         self.init_autoencoder(model_path)
 
     def init_autoencoder(self,model_path:str):
-        model = AutoEncoder.load_autoencoder(model_path)
+        model = AutoEncoder.load_autoencoder(model_path,self.compression_out)
         self.model = model.to(self.device)
 
     def send_image_to_device(self,image_tensor:torch.Tensor) -> torch.Tensor:
@@ -99,12 +100,13 @@ class Compressor_Decompressor:
         tile_list_tensor_cuda       = self.send_image_to_device(tile_list_tensor)
         compressed_image_tensor     = self.apply_compress_function(tile_list_tensor_cuda)
         clean_c                     = compressed_image_tensor.detach().cpu()
-        return clean_c, image_size
+        return clean_c.to(torch.half), image_size
     
     def decompress_image(self,compressed_image,destination_path:str,image_size,return_image=False)->np.ndarray:
         if type(compressed_image) is str: #Si se pasa el tensor como path a archivo se abrirá y copiará
             pass
-        compressed_image_cuda       = self.send_image_to_device(compressed_image)
+
+        compressed_image_cuda       = self.send_image_to_device(compressed_image.to(torch.float))
         decompressed_image_tensor   = self.apply_decompression_function(compressed_image_cuda)
         decompresssed_image         = self.retrieve_array(decompressed_image_tensor)
         end_image                   = self.rebuild_image(decompresssed_image,image_size)
