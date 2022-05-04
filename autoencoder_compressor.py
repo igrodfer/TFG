@@ -101,7 +101,7 @@ class Compressor_Decompressor:
         clean_c                     = compressed_image_tensor.detach().cpu()
         return clean_c, image_size
     
-    def decompress_image(self,compressed_image,destination_path:str,image_size)->np.ndarray:
+    def decompress_image(self,compressed_image,destination_path:str,image_size,return_image=False)->np.ndarray:
         if type(compressed_image) is str: #Si se pasa el tensor como path a archivo se abrirá y copiará
             pass
         compressed_image_cuda       = self.send_image_to_device(compressed_image)
@@ -110,5 +110,7 @@ class Compressor_Decompressor:
         end_image                   = self.rebuild_image(decompresssed_image,image_size)
         Compressor_Decompressor.store_image_from_np(destination_path, end_image)
         
+        if return_image:
+            return end_image
 
 
