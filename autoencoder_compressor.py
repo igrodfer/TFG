@@ -20,9 +20,11 @@ class Compressor_Decompressor:
     def send_image_to_device(self,image_tensor:torch.Tensor) -> torch.Tensor:
         return image_tensor.to(self.device)
 
-    def load_image_as_np(self,image_path:str)->np.ndarray:
+    @staticmethod
+    def load_image_as_np(image_path:str)->np.ndarray:
         return np.asarray(Image.open(image_path).convert('RGB'), dtype=np.uint8)
-
+        
+    @staticmethod
     def store_image_from_np(image_path:str,data:np.ndarray,format='RGB')->Image:
         img = Image.fromarray(data, format)
         img.save(image_path)
@@ -90,7 +92,7 @@ class Compressor_Decompressor:
         return res
     
     def compress_image(self,image_path:str):
-        image_np                    = self.load_image_as_np(image_path)
+        image_np                    = Compressor_Decompressor.load_image_as_np(image_path)
         image_size                  = image_np.shape
         tile_list_np                = self.segment_image(image_np,pad_type='reflect')
         tile_list_tensor            = self.make_tensor(tile_list_np)
@@ -98,8 +100,5 @@ class Compressor_Decompressor:
         compressed_image_tensor     = self.apply_compress_function(tile_list_tensor_cuda)
         clean_c                     = compressed_image_tensor.detach().cpu()
         return clean_c, image_size
-    
- 
-        
 
 
