@@ -38,17 +38,17 @@ class Compressor_Decompressor:
 
         # Pads the image so it can be chunked down to a grid even if the size of the image is not
         # divisible by the chunk size
-        v_pad = (0,self.tile_size - (img_height % tile_size)) if img_height % tile_size != 0 else (0,0)
-        h_pad = (0,tile_size - (img_width % tile_size)) if img_width % tile_size != 0 else (0,0)
+        v_pad = (0,self.tile_size - (img_height % self.tile_size)) if img_height % self.tile_size != 0 else (0,0)
+        h_pad = (0,self.tile_size - (img_width % self.tile_size)) if img_width % self.tile_size != 0 else (0,0)
             
         image = np.pad(image, (v_pad,h_pad,(0,0)), pad_type)
 
         img_height , img_width, channels = image.shape
 
-        tiled_array =  image.reshape(img_height // tile_size,
-                                    tile_size,
-                                    img_width // tile_size,
-                                    tile_size,
+        tiled_array =  image.reshape(img_height // self.tile_size,
+                                    self.tile_size,
+                                    img_width // self.tile_size,
+                                    self.tile_size,
                                     channels)
 
         tiled_array = tiled_array.swapaxes(1,2)
