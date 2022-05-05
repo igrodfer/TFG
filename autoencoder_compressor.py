@@ -4,18 +4,20 @@ import os
 from PIL import Image
 from ae import AutoEncoder
 import torch
+import ae
 
 
 class Compressor_Decompressor:
-    def __init__(self,model_path:str,chunk_size=8,compression_out=8) -> None:
+    def __init__(self,model_path:str,model_type,chunk_size=8,compression_out=8,) -> None:
         self.tile_size = chunk_size
         self.compression_out=compression_out
+        self.model_type = model_type
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         self.init_autoencoder(model_path)
 
     def init_autoencoder(self,model_path:str):
-        model = AutoEncoder.load_autoencoder(model_path,self.compression_out)
+        model = ae.load_model(self.model_type,model_path,self.compression_out)
         self.model = model.to(self.device)
 
     def send_image_to_device(self,image_tensor:torch.Tensor) -> torch.Tensor:
