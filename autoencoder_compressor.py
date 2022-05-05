@@ -112,9 +112,9 @@ class Compressor_Decompressor:
         decompressed_image_tensor   = self.apply_decompression_function(compressed_image_cuda)
         decompresssed_image         = self.retrieve_array(decompressed_image_tensor)
         end_image                   = self.rebuild_image(decompresssed_image,image_size)
-        Compressor_Decompressor.store_image_from_np(destination_path, end_image)
         
         if return_image:
             return end_image
+        Compressor_Decompressor.store_image_from_np(destination_path, end_image)
 
 
