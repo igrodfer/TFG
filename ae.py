@@ -62,6 +62,7 @@ class Autoencoder_5hidden(AutoEncoder):
         self.fc1 = nn.Linear(self.input_size, hidden_sizes[0])
         self.fc2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
         self.fc3 = nn.Linear(hidden_sizes[1], hidden_sizes[2])
+        #Decode
         self.fc4 = nn.Linear(hidden_sizes[2], hidden_sizes[3])
         self.fc5 = nn.Linear(hidden_sizes[3], hidden_sizes[4])
         self.fc6 = nn.Linear(hidden_sizes[4], self.input_size)
@@ -89,6 +90,55 @@ class Autoencoder_5hidden(AutoEncoder):
     
     def load_autoencoder(PATH,compression_out):
         model = Autoencoder_5hidden(hidden_sizes=[32*3,24,compression_out,24,32*3])
+        model.load_state_dict(torch.load(PATH))
+        model.eval()
+        return model
+
+class Autoencoder_7hidden(AutoEncoder):
+    def __init__(self, activation=nn.ReLU(), input_size=3 * 8 * 8, hidden_sizes=[32*3,48,24,8,24,48,32*3]):
+        super().__init__(activation, input_size, hidden_sizes)
+
+    def init_layers(self,activation, hidden_sizes):
+        self.activation = activation
+        #Encode
+        self.fc1 = nn.Linear(self.input_size, hidden_sizes[0])
+        self.fc2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
+        self.fc3 = nn.Linear(hidden_sizes[1], hidden_sizes[2])
+        self.fc4 = nn.Linear(hidden_sizes[2], hidden_sizes[3])
+        #Decode
+        self.fc5 = nn.Linear(hidden_sizes[3], hidden_sizes[4])
+        self.fc6 = nn.Linear(hidden_sizes[4], hidden_sizes[5])
+        self.fc7 = nn.Linear(hidden_sizes[5], hidden_sizes[6])
+        self.fc8 = nn.Linear(hidden_sizes[6], self.input_size)
+    def encode(self,x):
+        x = x.view(-1, self.input_size)
+        x = self.fc1(x)
+        x = self.activation(x)
+        x = self.fc2(x)        
+        x = self.activation(x)
+        x = self.fc3(x)
+        x = self.activation(x)
+        x = self.fc4(x)
+        x = self.activation(x)
+
+
+        return x
+    
+    def decode(self,x):        
+        x = self.fc5(x)        
+        x = self.activation(x)
+        x = self.fc6(x)        
+        x = self.activation(x)
+        x = self.fc7(x)        
+        x = self.activation(x)
+        x = self.fc8(x)
+        sig = nn.Sigmoid()
+        x = sig(x)
+
+        return x
+    
+    def load_autoencoder(PATH,compression_out):
+        model = Autoencoder_7hidden(hidden_sizes=[32*3,48,24,compression_out,24,48,32*3])
         model.load_state_dict(torch.load(PATH))
         model.eval()
         return model
