@@ -93,21 +93,38 @@ class Compressor_Decompressor:
         res = res.swapaxes(1,2)    
         res = res.swapaxes(2,3)
         return res
-    
-    def compress_image(self,image_path:str):
-        image_np                    = Compressor_Decompressor.load_image_as_np(image_path)
+
+    @staticmethod
+    def scale_array(the_array:np.ndarray):
+        max = the_array.max()
+        min = the_array.min()
+        
+        interpolated_array = (the_array - min)* 256 / (max - min) 
+        return interpolated_array.to(torch.uint8) , (max,min)
+
+    @staticmethod
+    def descale_array(interpolated_array,interval):
+        max,min = interval
+        the_array = interpolated_array * (max - min) / 256 + min
+        return the_array.to(torch.float)
+
+
+    def compress_image(self,image_path:str,image_np=False):
+        if not isinstance(image_np,np.ndarray):
+            image_np                = Compressor_Decompressor.load_image_as_np(image_path)
         image_size                  = image_np.shape
         tile_list_np                = self.segment_image(image_np,pad_type='reflect')
         tile_list_tensor            = self.make_tensor(tile_list_np)
         tile_list_tensor_cuda       = self.send_image_to_device(tile_list_tensor)
         compressed_image_tensor     = self.apply_compress_function(tile_list_tensor_cuda)
         clean_c                     = compressed_image_tensor.detach().cpu()
-        return clean_c.to(torch.half), image_size
+        scaled_array, interval      = Compressor_Decompressor.scale_array(clean_c)
+        return scaled_array, interval, image_size #cambio de tipo a float16 para aumentar la compresión perdiendo precision
     
-    def decompress_image(self,compressed_image,destination_path:str,image_size,return_image=False)->np.ndarray:
-        if type(compressed_image) is str: #Si se pasa el tensor como path a archivo se abrirá y copiará
+    def decompress_image(self,compressed_image_scaled,interval,destination_path:str,image_size,return_image=False)->np.ndarray:
+        if type(compressed_image_scaled) is str: #Si se pasa el tensor como path a archivo se abrirá y copiará
             pass
-
+        compressed_image            = Compressor_Decompressor.descale_array(compressed_image_scaled,interval)
         compressed_image_cuda       = self.send_image_to_device(compressed_image.to(torch.float))
         decompressed_image_tensor   = self.apply_decompression_function(compressed_image_cuda)
         decompresssed_image         = self.retrieve_array(decompressed_image_tensor)
