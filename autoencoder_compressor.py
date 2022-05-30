@@ -109,7 +109,7 @@ class Compressor_Decompressor:
         return the_array.to(torch.float)
 
 
-    def compress_image(self,image_path:str,image_np=False):
+    def compress_image(self,image_path:str,image_np=False,apply_scale=True):
         if not isinstance(image_np,np.ndarray):
             image_np                = Compressor_Decompressor.load_image_as_np(image_path)
         image_size                  = image_np.shape
@@ -118,6 +118,8 @@ class Compressor_Decompressor:
         tile_list_tensor_cuda       = self.send_image_to_device(tile_list_tensor)
         compressed_image_tensor     = self.apply_compress_function(tile_list_tensor_cuda)
         clean_c                     = compressed_image_tensor.detach().cpu()
+        if not apply_scale:
+            return clean_c, image_size
         scaled_array, interval      = Compressor_Decompressor.scale_array(clean_c)
         return scaled_array, interval, image_size #cambio de tipo a float16 para aumentar la compresión perdiendo precision
     
