@@ -99,13 +99,13 @@ class Compressor_Decompressor:
         max = the_array.max()
         min = the_array.min()
         
-        interpolated_array = (the_array - min)* 256 / (max - min) 
+        interpolated_array = (the_array - min)* 255 / (max - min) 
         return interpolated_array.to(torch.uint8) , (max,min)
 
     @staticmethod
     def descale_array(interpolated_array,interval):
         max,min = interval
-        the_array = interpolated_array * (max - min) / 256 + min
+        the_array = interpolated_array * (max - min) / 255 + min
         return the_array.to(torch.float)
 
 
