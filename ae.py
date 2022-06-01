@@ -226,3 +226,13 @@ class AutoEncoder_7H_noisy(Autoencoder_7hidden):
     def add_noise(self,x):
         noise = torch.rand_like(x) * self.noise_factor
         return x + noise
+
+class AutoEncoder_7H_Normalnoisy(AutoEncoder_7H_noisy):
+    def __init__(self, activation=nn.ReLU(), input_size=3 * 8 * 8, hidden_sizes=[32*3,48,24,8,24,48,32*3],compressed_size=None,noise_mean=0.0175,noise_std=0.011):
+        super().__init__(activation, input_size, hidden_sizes,compressed_size=compressed_size, noise_max = None)
+        self.noise_mean = noise_mean
+        self.noise_std  = noise_std
+
+    def add_noise(self,x):
+        noise = torch.randn_like(x) * self.noise_std + self.noise_mean
+        return x + noise
