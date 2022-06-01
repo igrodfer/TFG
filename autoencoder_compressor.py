@@ -124,10 +124,10 @@ class Compressor_Decompressor:
         return scaled_array, interval, image_size #cambio de tipo a float16 para aumentar la compresión perdiendo precision
     
     def decompress_image(self,compressed_image_scaled,interval,destination_path:str,image_size,return_image=False)->np.ndarray:
-        if type(compressed_image_scaled) is str: #Si se pasa el tensor como path a archivo se abrirá y copiará
+        if isinstance(compressed_image_scaled,str): #Si se pasa el tensor como path a archivo se abrirá y copiará
             pass
         compressed_image            = Compressor_Decompressor.descale_array(compressed_image_scaled,interval)
-        compressed_image_cuda       = self.send_image_to_device(compressed_image.to(torch.float))
+        compressed_image_cuda       = self.send_image_to_device(compressed_image)
         decompressed_image_tensor   = self.apply_decompression_function(compressed_image_cuda)
         decompresssed_image         = self.retrieve_array(decompressed_image_tensor)
         end_image                   = self.rebuild_image(decompresssed_image,image_size)
