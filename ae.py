@@ -1,4 +1,3 @@
-from turtle import forward
 import torch.nn as nn
 import torch
 def load_model(model_type,path,compression_out):
@@ -138,10 +137,13 @@ class Autoencoder_7hidden(AutoEncoder):
         x = self.fc7(x)        
         x = self.activation(x)
         x = self.fc8(x)
-        sig = nn.Sigmoid()
-        x = sig(x)
+        x = self.end_step(x)
 
         return x
+    
+    def end_step(self,x):
+        sig = nn.Sigmoid()
+        return sig(x)
     
     def load_autoencoder(PATH,compression_out):
         model = Autoencoder_7hidden(hidden_sizes=[32*3,48,24,compression_out,24,48,32*3])
@@ -236,3 +238,8 @@ class AutoEncoder_7H_Normalnoisy(AutoEncoder_7H_noisy):
     def add_noise(self,x):
         noise = torch.randn_like(x) * self.noise_std + self.noise_mean
         return x + noise
+
+
+class AutoEncoder_7H_nS(Autoencoder_7hidden):
+    def end_step(self,x):
+        return x
