@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 def load_model(model_type,path,compression_out):
-    return model_type.load_autoencoder(path,compression_out)
+    return model_type.load_model(path,compression_out)
 
 class AutoEncoder(nn.Module):
     def __init__(self, activation=nn.ReLU(), input_size=3*8*8, hidden_sizes=[32*3,8,32*3],compressed_size=None):
@@ -52,7 +52,7 @@ class AutoEncoder(nn.Module):
     def save_model(self,PATH):
         torch.save(self.state_dict(),PATH)
     
-    def load_autoencoder(PATH,compression_out):
+    def load_model(PATH,compression_out):
         model = AutoEncoder(hidden_sizes=[32*3,compression_out,32*3])
         model.load_state_dict(torch.load(PATH))
         model.eval()
@@ -93,7 +93,7 @@ class Autoencoder_5hidden(AutoEncoder):
 
         return x
     
-    def load_autoencoder(PATH,compression_out):
+    def load_model(PATH,compression_out):
         model = Autoencoder_5hidden(hidden_sizes=[32*3,24,compression_out,24,32*3])
         model.load_state_dict(torch.load(PATH))
         model.eval()
@@ -145,7 +145,7 @@ class Autoencoder_7hidden(AutoEncoder):
         sig = nn.Sigmoid()
         return sig(x)
     
-    def load_autoencoder(PATH,compression_out):
+    def load_model(PATH,compression_out):
         model = Autoencoder_7hidden(hidden_sizes=[32*3,48,24,compression_out,24,48,32*3])
         model.load_state_dict(torch.load(PATH))
         model.eval()
@@ -207,7 +207,7 @@ class AutoEncoder_11H(AutoEncoder):
 
         return x
     
-    def load_autoencoder(PATH,compression_out):
+    def load_model(PATH,compression_out):
         model = AutoEncoder_11H(hidden_sizes=[160,128,32*3,48,24,compression_out,24,48,32*3,128,160])
         model.load_state_dict(torch.load(PATH))
         model.eval()
