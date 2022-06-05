@@ -8,10 +8,11 @@ import ae
 
 
 class Compressor_Decompressor:
-    def __init__(self,model_path:str,model_type,chunk_size=8,compression_out=8,) -> None:
+    def __init__(self,model_path:str,model_type,chunk_size=8,compression_out=8,color_type="RGB") -> None:
         self.tile_size = chunk_size
         self.compression_out=compression_out
         self.model_type = model_type
+        self.color_type = color_type
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         self.init_autoencoder(model_path)
@@ -23,13 +24,11 @@ class Compressor_Decompressor:
     def send_image_to_device(self,image_tensor:torch.Tensor) -> torch.Tensor:
         return image_tensor.to(self.device)
 
-    @staticmethod
-    def load_image_as_np(image_path:str)->np.ndarray:
-        return np.asarray(Image.open(image_path).convert('RGB'), dtype=np.uint8)
+    def load_image_as_np(self,image_path:str)->np.ndarray:
+        return np.asarray(Image.open(image_path).convert(self.color_type), dtype=np.uint8)
         
-    @staticmethod
-    def store_image_from_np(image_path:str,data:np.ndarray,format='RGB')->Image:
-        img = Image.fromarray(data, format)
+    def store_image_from_np(self,image_path:str,data:np.ndarray)->Image:
+        img = Image.fromarray(data, self.color_type)
         img.save(image_path)
         return img
 
@@ -89,10 +88,20 @@ class Compressor_Decompressor:
 
     def retrieve_array(self,decoded_tile_tensor:torch.Tensor) -> np.ndarray:
         res = decoded_tile_tensor.detach().cpu().reshape(-1,3,self.tile_size,self.tile_size)
-        res = (res.numpy() * 255).astype('uint8')
+        res = (res.numpy() * 255)
         res = res.swapaxes(1,2)    
         res = res.swapaxes(2,3)
-        return res
+        return res.astype('uint8') if self.color_type != "YCbCr" else Compressor_Decompressor.ycbcr2rgb(res) 
+    
+    @staticmethod
+    def ycbcr2rgb(im):
+        xform = np.array([[1, 0, 1.402], [1, -0.34414, -.71414], [1, 1.772, 0]])
+        rgb = im.astype(float)
+        rgb[:,:,[1,2]] -= 128
+        rgb = rgb.dot(xform.T)
+        np.putmask(rgb, rgb > 255, 255)
+        np.putmask(rgb, rgb < 0, 0)
+        return np.uint8(rgb)
 
     @staticmethod
     def scale_array(the_array:np.ndarray):
@@ -111,7 +120,7 @@ class Compressor_Decompressor:
 
     def compress_image(self,image_path:str,image_np=False,apply_scale=True):
         if not isinstance(image_np,np.ndarray):
-            image_np                = Compressor_Decompressor.load_image_as_np(image_path)
+            image_np                = self.load_image_as_np(image_path)
         image_size                  = image_np.shape
         tile_list_np                = self.segment_image(image_np,pad_type='reflect')
         tile_list_tensor            = self.make_tensor(tile_list_np)
@@ -134,6 +143,6 @@ class Compressor_Decompressor:
         
         if return_image:
             return end_image
-        Compressor_Decompressor.store_image_from_np(destination_path, end_image)
+        self.store_image_from_np(destination_path, end_image)
 
 
