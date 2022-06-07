@@ -1,3 +1,5 @@
+from turtle import forward
+from numpy import array
 import torch.nn as nn
 import torch
 def load_model(model_type,path,compression_out):
@@ -242,4 +244,130 @@ class AutoEncoder_7H_Normalnoisy(AutoEncoder_7H_noisy):
 
 class AutoEncoder_7H_nS(Autoencoder_7hidden):
     def end_step(self,x):
+        return x
+
+class SplitChanelAe(nn.Module):
+    def __init__(self,input_size=8*8,compressed_size=[4,2,2],activation=nn.ReLU()):
+        self.y_index, self.b_index, self.r_index = 0,1,2
+
+        self.c_sizes = compressed_size
+        super(SplitChanelAe, self).__init__()
+        self.input_size = input_size
+        self.c_sizes = compressed_size
+        self.y_encoder = encoder(self.input_size,self.c_sizes[self.y_index])
+        self.b_encoder = encoder(self.input_size,self.c_sizes[self.b_index])
+        self.r_encoder = encoder(self.input_size,self.c_sizes[self.r_index])
+
+        self.y_decoder = decoder(self.input_size,self.c_sizes[self.y_index])
+        self.b_decoder = decoder(self.input_size,self.c_sizes[self.b_index])
+        self.r_decoder = decoder(self.input_size,self.c_sizes[self.r_index])
+
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.to(device)   
+
+    def forward(self,x):
+        x = self.encode(x)
+        x = self.decode(x)
+
+        return x
+
+    def encode(self,x):
+        y = x[:,self.y_index,:,:]
+        b = x[:,self.b_index,:,:]
+        r = x[:,self.r_index,:,:]
+
+        y = self.y_encoder(y)
+        b = self.b_encoder(b)
+        r = self.r_encoder(r)
+
+        x = torch.cat((y,b,r),1)
+        return x
+    
+    def decode(self,x):
+        y_size = self.c_sizes[self.y_index]
+        b_size = self.c_sizes[self.b_index]
+
+        y = x[:,0:y_size]
+        b = x[:,y_size:(y_size+b_size)]
+        r = x[:,(y_size+b_size):]
+
+
+        y = self.y_decoder(y)
+        b = self.b_decoder(b)
+        r = self.r_decoder(r)
+
+        return torch.stack((y,b,r),1)
+
+    def load_model(PATH,compression_out:int or array[int]):
+        model = SplitChanelAe(compressed_size=compression_out)
+        model.load_state_dict(torch.load(PATH))
+        model.eval()
+        return model
+
+
+class encoder(nn.Module):
+    def __init__(self,input_size,compressed_size,activation=nn.ReLU(),hidden_sizes=[32,24,12]):
+        self.y_index, self.b_index, self.r_index = 0,1,2
+
+        super(encoder, self).__init__()
+        self.input_size = input_size
+        self.c_size = compressed_size
+
+
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.to(device)   
+
+        #Encode
+        self.fc1 = nn.Linear(self.input_size, hidden_sizes[0])
+        self.a1 = activation
+        self.fc2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
+        self.a2 = activation
+        self.fc3 = nn.Linear(hidden_sizes[1], hidden_sizes[2])
+        self.a3 = activation
+        self.fc4 = nn.Linear(hidden_sizes[2], self.c_size)
+        self.a4 = activation
+
+    def forward(self,x):
+        x = x.view(-1,self.input_size)
+        x = self.fc1(x)
+        x = self.a1(x)
+        x = self.fc2(x)
+        x = self.a2(x)
+        x = self.fc3(x)
+        x = self.a3(x)
+        x = self.fc4(x)
+        x = self.a4(x)
+        return x
+
+class decoder(nn.Module):    
+    def __init__(self,output_size,compressed_size,activation=nn.ReLU(),hidden_sizes=[32,24,12]):
+        self.y_index, self.b_index, self.r_index = 0,1,2
+
+        super(decoder, self).__init__()
+        self.input_size = output_size
+        self.c_size = compressed_size
+
+
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.to(device)   
+
+        #Encode
+        self.fc1 = nn.Linear(self.c_size, hidden_sizes[0])
+        self.a1 = activation
+        self.fc2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
+        self.a2 = activation
+        self.fc3 = nn.Linear(hidden_sizes[1], hidden_sizes[2])
+        self.a3 = activation
+        self.fc4 = nn.Linear(hidden_sizes[2], output_size)
+        self.a4 = activation
+
+    def forward(self,x):
+        x = self.fc1(x)
+        x = self.a1(x)
+        x = self.fc2(x)
+        x = self.a2(x)
+        x = self.fc3(x)
+        x = self.a3(x)
+        x = self.fc4(x)
+        x = self.a4(x)
         return x
