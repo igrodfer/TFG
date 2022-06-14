@@ -60,7 +60,7 @@ class AutoEncoder(nn.Module):
         model.eval()
         return model
     
-class Autoencoder_5hidden(AutoEncoder):
+class AutoEncoder_6H(AutoEncoder):
     def __init__(self, activation=nn.ReLU(), input_size=3 * 8 * 8, hidden_sizes=[32*3,24,8,24,32*3],compressed_size=None):
         super().__init__(activation, input_size, hidden_sizes,compressed_size=compressed_size)
 
@@ -96,12 +96,12 @@ class Autoencoder_5hidden(AutoEncoder):
         return x
     
     def load_model(PATH,compression_out):
-        model = Autoencoder_5hidden(hidden_sizes=[32*3,24,compression_out,24,32*3])
+        model = AutoEncoder_6H(hidden_sizes=[32*3,24,compression_out,24,32*3])
         model.load_state_dict(torch.load(PATH))
         model.eval()
         return model
 
-class Autoencoder_7hidden(AutoEncoder):
+class AutoEncoder_8H(AutoEncoder):
     def __init__(self, activation=nn.ReLU(), input_size=3 * 8 * 8, hidden_sizes=[32*3,48,24,8,24,48,32*3],compressed_size=None):
         super().__init__(activation, input_size, hidden_sizes,compressed_size=compressed_size)
 
@@ -148,12 +148,12 @@ class Autoencoder_7hidden(AutoEncoder):
         return sig(x)
     
     def load_model(PATH,compression_out):
-        model = Autoencoder_7hidden(hidden_sizes=[32*3,48,24,compression_out,24,48,32*3])
+        model = AutoEncoder_8H(hidden_sizes=[32*3,48,24,compression_out,24,48,32*3])
         model.load_state_dict(torch.load(PATH))
         model.eval()
         return model
 
-class AutoEncoder_11H(AutoEncoder):
+class AutoEncoder_12H(AutoEncoder):
     def __init__(self, activation=nn.ReLU(), input_size=3 * 8 * 8, hidden_sizes=[160,128,32*3,48,24,8,24,48,32*3,128,160],compressed_size=None):
         super().__init__(activation, input_size, hidden_sizes,compressed_size=compressed_size)
 
@@ -210,13 +210,13 @@ class AutoEncoder_11H(AutoEncoder):
         return x
     
     def load_model(PATH,compression_out):
-        model = AutoEncoder_11H(hidden_sizes=[160,128,32*3,48,24,compression_out,24,48,32*3,128,160])
+        model = AutoEncoder_12H(hidden_sizes=[160,128,32*3,48,24,compression_out,24,48,32*3,128,160])
         model.load_state_dict(torch.load(PATH))
         model.eval()
         return model
 
 
-class AutoEncoder_7H_noisy(Autoencoder_7hidden):
+class AutoEncoder_8H_noisy(AutoEncoder_8H):
     def __init__(self, activation=nn.ReLU(), input_size=3 * 8 * 8, hidden_sizes=[32*3,48,24,8,24,48,32*3],compressed_size=None,noise_max = 0.0035):
         super().__init__(activation, input_size, hidden_sizes,compressed_size=compressed_size)
         self.noise_factor = noise_max
@@ -231,7 +231,7 @@ class AutoEncoder_7H_noisy(Autoencoder_7hidden):
         noise = torch.rand_like(x) * self.noise_factor
         return x + noise
 
-class AutoEncoder_7H_Normalnoisy(AutoEncoder_7H_noisy):
+class AutoEncoder_8H_Normalnoisy(AutoEncoder_8H_noisy):
     def __init__(self, activation=nn.ReLU(), input_size=3 * 8 * 8, hidden_sizes=[32*3,48,24,8,24,48,32*3],compressed_size=None,noise_mean=0.0175,noise_std=0.011):
         super().__init__(activation, input_size, hidden_sizes,compressed_size=compressed_size, noise_max = None)
         self.noise_mean = noise_mean
@@ -242,7 +242,7 @@ class AutoEncoder_7H_Normalnoisy(AutoEncoder_7H_noisy):
         return x + noise
 
 
-class AutoEncoder_7H_nS(Autoencoder_7hidden):
+class AutoEncoder_8H_nS(AutoEncoder_8H):
     def end_step(self,x):
         return x
 
@@ -306,7 +306,7 @@ class SplitChanelAe(nn.Module):
 
 
 class encoder(nn.Module):
-    def __init__(self,input_size,compressed_size,activation=nn.ReLU(),hidden_sizes=[32,24,12]):
+    def __init__(self,input_size,compressed_size,activation=nn.ReLU,hidden_sizes=[32,24,12]):
         self.y_index, self.b_index, self.r_index = 0,1,2
 
         super(encoder, self).__init__()
@@ -319,13 +319,13 @@ class encoder(nn.Module):
 
         #Encode
         self.fc1 = nn.Linear(self.input_size, hidden_sizes[0])
-        self.a1 = activation
+        self.a1 = activation()
         self.fc2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
-        self.a2 = activation
+        self.a2 = activation()
         self.fc3 = nn.Linear(hidden_sizes[1], hidden_sizes[2])
-        self.a3 = activation
+        self.a3 = activation()
         self.fc4 = nn.Linear(hidden_sizes[2], self.c_size)
-        self.a4 = activation
+        self.a4 = activation()
 
     def forward(self,x):
         x = x.view(-1,self.input_size)
@@ -340,7 +340,7 @@ class encoder(nn.Module):
         return x
 
 class decoder(nn.Module):    
-    def __init__(self,output_size,compressed_size,activation=nn.ReLU(),hidden_sizes=[32,24,12]):
+    def __init__(self,output_size,compressed_size,activation=nn.ReLU,hidden_sizes=[32,24,12]):
         self.y_index, self.b_index, self.r_index = 0,1,2
 
         super(decoder, self).__init__()
@@ -353,13 +353,13 @@ class decoder(nn.Module):
 
         #Encode
         self.fc1 = nn.Linear(self.c_size, hidden_sizes[0])
-        self.a1 = activation
+        self.a1 = activation()
         self.fc2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
-        self.a2 = activation
+        self.a2 = activation()
         self.fc3 = nn.Linear(hidden_sizes[1], hidden_sizes[2])
-        self.a3 = activation
+        self.a3 = activation()
         self.fc4 = nn.Linear(hidden_sizes[2], output_size)
-        self.a4 = activation
+        self.a4 = activation()
 
     def forward(self,x):
         x = self.fc1(x)
