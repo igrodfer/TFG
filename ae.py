@@ -80,11 +80,11 @@ class AutoEncoder_6H(AutoEncoder):
         x = self.fc2(x)        
         x = self.activation(x)
         x = self.fc3(x)
+        x = self.activation(x)
 
         return x
     
     def decode(self,x):        
-        x = self.activation(x)
         x = self.fc4(x)        
         x = self.activation(x)
         x = self.fc5(x)        
@@ -307,7 +307,6 @@ class SplitChanelAe(nn.Module):
 
 class encoder(nn.Module):
     def __init__(self,input_size,compressed_size,activation=nn.ReLU,hidden_sizes=[32,24,12]):
-        self.y_index, self.b_index, self.r_index = 0,1,2
 
         super(encoder, self).__init__()
         self.input_size = input_size
@@ -340,8 +339,7 @@ class encoder(nn.Module):
         return x
 
 class decoder(nn.Module):    
-    def __init__(self,output_size,compressed_size,activation=nn.ReLU,hidden_sizes=[32,24,12]):
-        self.y_index, self.b_index, self.r_index = 0,1,2
+    def __init__(self,output_size,compressed_size,activation=nn.ReLU,hidden_sizes=[12,24,32]):
 
         super(decoder, self).__init__()
         self.input_size = output_size
