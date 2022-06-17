@@ -124,7 +124,7 @@ class Compressor_Decompressor:
         return the_array.to(torch.float)
 
 
-    def compress_image(self,image_path:str,image_np=False,apply_scale=True):
+    def compress_image(self,image_path:str,image_np:None or np.ndarray=False,apply_scale=True):
         if not isinstance(image_np,np.ndarray):
             image_np                = self.load_image_as_np(image_path)
         image_size                  = image_np.shape
