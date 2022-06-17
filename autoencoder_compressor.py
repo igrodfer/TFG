@@ -9,14 +9,16 @@ import ae
 
 
 class Compressor_Decompressor:
-    def __init__(self,model_path:str,model_type,chunk_size=8,compression_out=8,color_format="RGB") -> None:
+    def __init__(self,model_path:str,model_type,chunk_size=8,compression_out=8,color_format="RGB",module_torch=None) -> None:
         self.tile_size = chunk_size
         self.compression_out=compression_out
         self.model_type = model_type
         self.color_type = color_format
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-        self.init_autoencoder(model_path)
+        if module_torch == None:
+            self.init_autoencoder(model_path)
+        elif isinstance(module_torch,torch.nn.Module):
+            self.model = module_torch
 
     def init_autoencoder(self,model_path:str):
         model = ae.load_model(self.model_type,model_path,self.compression_out)
