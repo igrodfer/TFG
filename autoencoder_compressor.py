@@ -82,7 +82,7 @@ class Compressor_Decompressor:
     def apply_decompression_function(self,encoded_tile_tensor:torch.Tensor) -> torch.Tensor:
         with torch.no_grad():
 
-            return self.model.decode(encoded_tile_tensor)
+            return torch.clamp(self.model.decode(encoded_tile_tensor),min=0,max=1)
 
     def make_tensor(self,tile_list_array:np.ndarray)-> torch.Tensor:    
         tile_list_array = tile_list_array.swapaxes(2,3)
