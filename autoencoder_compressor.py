@@ -87,9 +87,10 @@ class Compressor_Decompressor:
     def make_tensor(self,tile_list_array:np.ndarray)-> torch.Tensor:    
         tile_list_array = tile_list_array.swapaxes(2,3)
         tile_list_array = tile_list_array.swapaxes(1,2)
-        
+        if tile_list_array.max() > 1 and tile_list_array.dtype == np.uint8:
+            tile_list_array = tile_list_array/255
         tile_list_tensor = torch.from_numpy(tile_list_array.astype('float32')).reshape(-1,self.tile_size,self.tile_size,3)
-        return tile_list_tensor /255
+        return tile_list_tensor
 
 
     def retrieve_array(self,decoded_tile_tensor:torch.Tensor) -> np.ndarray:
