@@ -246,6 +246,12 @@ class AutoEncoder_8H_nS(AutoEncoder_8H):
     def end_step(self,x):
         return x
 
+    def load_model(PATH,compression_out:int or array[int]):
+        model = AutoEncoder_8H_nS(compressed_size=compression_out)
+        model.load_state_dict(torch.load(PATH))
+        model.eval()
+        return model
+
 class SplitChanelAe(nn.Module):
     def __init__(self,input_size=8*8,compressed_size=[4,2,2],activation=nn.ReLU()):
         self.y_index, self.b_index, self.r_index = 0,1,2
